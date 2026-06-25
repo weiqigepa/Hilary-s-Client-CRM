@@ -1,1 +1,217 @@
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Client CRM</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;background:#f5f5f0;color:#1a1a1a;min-height:100vh}
+input,select,textarea,button{font-family:inherit;font-size:13px;outline:none}
+input,select,textarea{border:0.5px solid #ccc;border-radius:8px;padding:7px 10px;background:#fff;color:#1a1a1a;width:100%}
+input:focus,select:focus,textarea:focus{border-color:#7F77DD;box-shadow:0 0 0 2px rgba(127,119,221,0.15)}
+button{cursor:pointer;border:0.5px solid #ccc;border-radius:8px;padding:7px 14px;background:#fff;color:#1a1a1a}
+button:hover{background:#f0f0f0}
+textarea{resize:vertical;min-height:60px}
+.app{display:grid;grid-template-columns:240px 1fr;height:100vh;overflow:hidden}
+.sidebar{background:#fff;border-right:0.5px solid #e0e0e0;display:flex;flex-direction:column;overflow:hidden}
+.sidebar-header{padding:16px 14px 12px;border-bottom:0.5px solid #e0e0e0;display:flex;align-items:center;justify-content:space-between}
+.sidebar-title{font-size:14px;font-weight:600;color:#1a1a1a}
+.sidebar-sub{font-size:11px;color:#888;margin-top:2px}
+.sync-btn{border:0.5px solid #e0e0e0;padding:5px 9px;font-size:12px;color:#666;border-radius:8px}
+.loading-bar-wrap{height:2px;background:#f0f0f0}
+.loading-bar{height:100%;background:#7F77DD;width:0;transition:width 0.3s;border-radius:2px}
+.search-wrap{padding:10px 12px;border-bottom:0.5px solid #e0e0e0}
+.search-wrap input{font-size:12px}
+.client-list{flex:1;overflow-y:auto}
+.client-item{padding:10px 14px;border-bottom:0.5px solid #f0f0f0;cursor:pointer;display:flex;align-items:center;gap:10px}
+.client-item:hover{background:#fafafa}
+.client-item.active{background:#EEEDFE}
+.avatar{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0}
+.av-purple{background:#EEEDFE;color:#3C3489}
+.av-teal{background:#E1F5EE;color:#085041}
+.av-blue{background:#E6F1FB;color:#0C447C}
+.av-coral{background:#FAECE7;color:#712B13}
+.av-amber{background:#FAEEDA;color:#633806}
+.client-meta{min-width:0;flex:1}
+.client-name{font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.client-age{font-size:11px;color:#888}
+.alert-dot{width:7px;height:7px;border-radius:50%;background:#E24B4A;flex-shrink:0}
+.add-btn-wrap{padding:10px 12px;border-top:0.5px solid #e0e0e0}
+.add-btn{width:100%;font-size:12px;background:#EEEDFE;border-color:#AFA9EC;color:#3C3489;font-weight:500}
+.add-btn:hover{background:#CECBF6}
+.status-row{padding:7px 14px;font-size:11px;color:#888;border-top:0.5px solid #e0e0e0;display:flex;align-items:center;gap:6px}
+.dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.dot-live{background:#639922}
+.dot-sync{background:#BA7517}
+.dot-err{background:#E24B4A}
+.main{display:flex;flex-direction:column;overflow:hidden;background:#f5f5f0}
+.main-header{background:#fff;border-bottom:0.5px solid #e0e0e0;padding:14px 20px;display:flex;align-items:center;justify-content:space-between}
+.view-avatar{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0}
+.main-tabs{display:flex;background:#fff;border-bottom:0.5px solid #e0e0e0}
+.tab{padding:10px 18px;font-size:12px;cursor:pointer;color:#888;border-bottom:2px solid transparent;margin-bottom:-0.5px;white-space:nowrap}
+.tab:hover{color:#333}
+.tab.active{color:#534AB7;border-bottom-color:#534AB7;font-weight:500}
+.content{padding:18px 20px;overflow-y:auto;flex:1}
+.no-client{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#aaa;gap:10px}
+.no-client i{font-size:36px}
+.section-title{font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;margin-top:18px}
+.section-title:first-child{margin-top:0}
+.card{background:#fff;border:0.5px solid #e0e0e0;border-radius:12px;padding:14px 16px;margin-bottom:4px}
+.field-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:0.5px solid #f0f0f0;font-size:12px}
+.field-row:last-child{border-bottom:none}
+.field-key{color:#888}
+.field-val{color:#1a1a1a;text-align:right;max-width:60%}
+.badge{font-size:10px;padding:3px 9px;border-radius:20px;font-weight:500;white-space:nowrap}
+.b-yes{background:#EAF3DE;color:#27500A}
+.b-no{background:#FCEBEB;color:#A32D2D}
+.b-gray{background:#F1EFE8;color:#5F5E5A}
+.gi-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:0.5px solid #f0f0f0;font-size:12px}
+.gi-row:last-child{border-bottom:none}
+.alert-item{border-radius:8px;padding:10px 14px;margin-bottom:8px;font-size:12px;display:flex;gap:10px;align-items:flex-start;line-height:1.5}
+.alert-red{background:#FCEBEB;border:0.5px solid #F7C1C1;color:#501313}
+.alert-amber{background:#FAEEDA;border:0.5px solid #FAC775;color:#412402}
+.alert-blue{background:#E6F1FB;border:0.5px solid #B5D4F4;color:#042C53}
+.alert-green{background:#EAF3DE;border:0.5px solid #C0DD97;color:#173404}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.stat-card{background:#fff;border:0.5px solid #e0e0e0;border-radius:10px;padding:12px 14px}
+.stat-num{font-size:22px;font-weight:600;color:#1a1a1a}
+.stat-lbl{font-size:11px;color:#888;margin-top:2px}
+.bar-wrap{margin-top:8px}
+.bar-label{display:flex;justify-content:space-between;font-size:11px;color:#888;margin-bottom:4px}
+.bar{height:5px;border-radius:3px;background:#f0f0f0}
+.bar-fill{height:100%;border-radius:3px}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:200;align-items:flex-start;justify-content:center;padding-top:30px;overflow-y:auto}
+.modal-overlay.open{display:flex}
+.modal{background:#fff;border-radius:14px;padding:22px;width:580px;max-width:95vw;margin-bottom:30px}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.modal-title{font-size:16px;font-weight:600}
+.close-btn{background:none;border:none;font-size:20px;cursor:pointer;color:#aaa;padding:2px 8px;line-height:1}
+.close-btn:hover{color:#333;background:none}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.form-group{display:flex;flex-direction:column;gap:5px}
+.form-group label{font-size:11px;color:#888;font-weight:500}
+.form-section{font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin:16px 0 10px;padding-top:14px;border-top:0.5px solid #e0e0e0}
+.form-section:first-child{border-top:none;margin-top:0;padding-top:0}
+.checkbox-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.chk-row{display:flex;align-items:center;gap:8px;font-size:12px;color:#1a1a1a;cursor:pointer}
+.chk-row input[type=checkbox]{width:15px;height:15px;margin:0;cursor:pointer;accent-color:#534AB7}
+.form-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:20px;padding-top:16px;border-top:0.5px solid #e0e0e0}
+.btn-save{background:#EEEDFE;border-color:#AFA9EC;color:#3C3489;font-weight:500}
+.btn-save:hover{background:#CECBF6}
+.btn-delete{color:#A32D2D;border-color:#F7C1C1}
+.btn-delete:hover{background:#FCEBEB}
+.toast{position:fixed;bottom:20px;right:20px;background:#1a1a1a;color:#fff;border-radius:8px;padding:10px 18px;font-size:12px;z-index:300;opacity:0;transition:opacity 0.2s;pointer-events:none}
+.toast.show{opacity:1}
+.empty-state{padding:30px 14px;font-size:12px;color:#aaa;text-align:center}
+@media(max-width:600px){
+  .app{grid-template-columns:1fr}
+  .sidebar{display:none}
+  .stat-grid{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <div>
+        <div class="sidebar-title">Client CRM</div>
+        <div class="sidebar-sub" id="client-count">Loading...</div>
+      </div>
+      <button class="sync-btn" onclick="loadClients(true)" title="Sync now"><i class="ti ti-refresh"></i></button>
+    </div>
+    <div class="loading-bar-wrap"><div class="loading-bar" id="loading-bar"></div></div>
+    <div class="search-wrap">
+      <input type="text" id="search-input" placeholder="Search clients..." oninput="filterClients()"/>
+    </div>
+    <div class="client-list" id="client-list"></div>
+    <div class="add-btn-wrap">
+      <button class="add-btn" onclick="openAddModal()"><i class="ti ti-plus" style="font-size:13px;vertical-align:-1px"></i> Add client</button>
+    </div>
+    <div class="status-row">
+      <div class="dot dot-sync" id="status-dot"></div>
+      <span id="status-text">Connecting...</span>
+    </div>
+  </div>
+  <div class="main">
+    <div class="no-client" id="no-client-msg">
+      <i class="ti ti-users"></i>
+      <span style="font-size:13px">Select a client or add a new one</span>
+    </div>
+    <div id="client-view" style="display:none;flex-direction:column;height:100%">
+      <div class="main-header">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div class="view-avatar" id="view-avatar"></div>
+          <div>
+            <div style="font-size:16px;font-weight:600" id="view-name"></div>
+            <div style="font-size:12px;color:#888" id="view-sub"></div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button style="font-size:12px" onclick="editCurrent()"><i class="ti ti-edit" style="font-size:13px;vertical-align:-1px"></i> Edit</button>
+          <button class="btn-delete" style="font-size:12px" onclick="deleteCurrent()"><i class="ti ti-trash" style="font-size:13px;vertical-align:-1px"></i> Delete</button>
+        </div>
+      </div>
+      <div class="main-tabs">
+        <div class="tab active" onclick="switchTab('overview',this)">Overview</div>
+        <div class="tab" onclick="switchTab('gi',this)">GI coverage</div>
+        <div class="tab" onclick="switchTab('estate',this)">Estate</div>
+        <div class="tab" onclick="switchTab('lifestyle',this)">Lifestyle</div>
+        <div class="tab" onclick="switchTab('alerts',this)">Alerts <span id="alert-count-badge"></span></div>
+      </div>
+      <div class="content" id="tab-content"></div>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">Add client</div>
+      <button class="close-btn" onclick="closeModal()">&times;</button>
+    </div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+const SCRIPT_URL='https://script.google.com/macros/s/AKfycbwkv8vp2JFKBENs5tdfox971ZFLnnO2xwgYo_fm06pQbtHpqvtXrnubwsiQ5shWeD2wIg/exec';
+const COLORS=['av-purple','av-teal','av-blue','av-coral','av-amber'];
+let clients=[],currentId=null,currentTab='overview',editingId=null,saving=false;
+function setStatus(state,text){const dot=document.getElementById('status-dot');dot.className='dot '+(state==='live'?'dot-live':state==='err'?'dot-err':'dot-sync');document.getElementById('status-text').textContent=text;}
+function setLoading(on){const bar=document.getElementById('loading-bar');bar.style.width=on?'80%':'100%';if(!on)setTimeout(()=>{bar.style.width='0';},400);}
+function showToast(msg,dur=2500){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),dur);}
+async function apiCall(params){const url=new URL(SCRIPT_URL);Object.entries(params).forEach(([k,v])=>url.searchParams.set(k,typeof v==='object'?JSON.stringify(v):v));const res=await fetch(url.toString());return res.json();}
+async function loadClients(manual=false){setLoading(true);setStatus('sync','Syncing...');try{const data=await apiCall({action:'getAll'});if(data.error)throw new Error(data.error);clients=data.clients||[];setStatus('live','Live · '+new Date().toLocaleTimeString('en-SG',{hour:'2-digit',minute:'2-digit'}));if(manual)showToast('Synced — '+clients.length+' clients');}catch(e){setStatus('err','Connection error');if(manual)showToast('Could not reach Google Sheet');}setLoading(false);renderSidebar(document.getElementById('search-input').value);if(currentId){const still=clients.find(x=>String(x.id)===String(currentId));if(still)renderClientView();}}
+function getAlertCount(c){return Object.values(c.alerts||{}).filter(Boolean).length;}
+function initials(name){return name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();}
+function renderSidebar(filter=''){const list=document.getElementById('client-list');const filtered=clients.filter(c=>c.name.toLowerCase().includes(filter.toLowerCase()));if(!clients.length){list.innerHTML='<div class="empty-state">No clients yet.<br>Add your first one!</div>';}else if(!filtered.length){list.innerHTML='<div class="empty-state">No results.</div>';}else{list.innerHTML=filtered.map(c=>{const ac=getAlertCount(c);return`<div class="client-item${String(currentId)===String(c.id)?' active':''}" onclick="selectClient('${c.id}')"><div class="avatar ${COLORS[(c.color||0)%COLORS.length]}">${initials(c.name)}</div><div class="client-meta"><div class="client-name">${c.name}</div><div class="client-age">${c.age?'Age '+c.age:''}${c.occupation?' · '+c.occupation:''}</div></div>${ac>0?`<div class="alert-dot" title="${ac} alert(s)"></div>`:''}</div>`;}).join('');}document.getElementById('client-count').textContent=clients.length+' client'+(clients.length!==1?'s':'');}
+function filterClients(){renderSidebar(document.getElementById('search-input').value);}
+function selectClient(id){currentId=String(id);currentTab='overview';renderSidebar(document.getElementById('search-input').value);document.getElementById('no-client-msg').style.display='none';const v=document.getElementById('client-view');v.style.display='flex';document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',i===0));renderClientView();}
+function renderClientView(){const c=clients.find(x=>String(x.id)===String(currentId));if(!c)return;const av=document.getElementById('view-avatar');av.textContent=initials(c.name);av.className='view-avatar '+COLORS[(c.color||0)%COLORS.length];document.getElementById('view-name').textContent=c.name;document.getElementById('view-sub').textContent=[c.age?'Age '+c.age:'',c.occupation,c.annual_income?'$'+Number(c.annual_income).toLocaleString()+'/yr':''].filter(Boolean).join(' · ');const ac=getAlertCount(c);document.getElementById('alert-count-badge').textContent=ac>0?'('+ac+')':'';;renderTab();}
+function switchTab(tab,el){currentTab=tab;document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');renderTab();}
+function renderTab(){const c=clients.find(x=>String(x.id)===String(currentId));if(!c)return;const el=document.getElementById('tab-content');if(currentTab==='overview')el.innerHTML=renderOverview(c);else if(currentTab==='gi')el.innerHTML=renderGI(c);else if(currentTab==='estate')el.innerHTML=renderEstate(c);else if(currentTab==='lifestyle')el.innerHTML=renderLifestyle(c);else if(currentTab==='alerts')el.innerHTML=renderAlerts(c);}
+function pct(v,r){return r?Math.min(100,Math.round(v/r*100)):0;}
+function barColor(p){return p>=80?'#639922':p>=50?'#BA7517':'#E24B4A';}
+function fmt(n){return '$'+Math.round((n||0)/1000)+'k';}
+function renderOverview(c){const cv=c.coverage||{};const ciP=pct(cv.ci_current,cv.ci_rec);const lifeP=pct(cv.life_current,cv.life_rec);return`<div class="stat-grid"><div class="stat-card"><div class="stat-num">${fmt(cv.ci_current)}</div><div class="stat-lbl">CI coverage</div></div><div class="stat-card"><div class="stat-num">${fmt(cv.life_current)}</div><div class="stat-lbl">Life / TPD</div></div><div class="stat-card"><div class="stat-num">${Object.values(c.gi||{}).filter(v=>v==='us').length}</div><div class="stat-lbl">GI with us</div></div><div class="stat-card"><div class="stat-num">${getAlertCount(c)}</div><div class="stat-lbl">Alerts</div></div></div><div class="section-title">Coverage health</div><div class="card"><div class="bar-wrap"><div class="bar-label"><span>Critical illness</span><span style="color:${barColor(ciP)}">${fmt(cv.ci_current)} / ${fmt(cv.ci_rec)} rec.</span></div><div class="bar"><div class="bar-fill" style="width:${ciP}%;background:${barColor(ciP)}"></div></div></div><div class="bar-wrap" style="margin-top:12px"><div class="bar-label"><span>Life / TPD</span><span style="color:${barColor(lifeP)}">${fmt(cv.life_current)} / ${fmt(cv.life_rec)} rec.</span></div><div class="bar"><div class="bar-fill" style="width:${lifeP}%;background:${barColor(lifeP)}"></div></div></div></div><div class="section-title">Personal info</div><div class="card"><div class="field-row"><span class="field-key">NRIC</span><span class="field-val">${c.nric||'—'}</span></div><div class="field-row"><span class="field-key">DOB</span><span class="field-val">${c.dob||'—'}</span></div><div class="field-row"><span class="field-key">Phone</span><span class="field-val">${c.phone||'—'}</span></div><div class="field-row"><span class="field-key">Email</span><span class="field-val">${c.email||'—'}</span></div></div>${c.medical?`<div class="section-title">Medical notes</div><div class="card" style="font-size:12px;color:#666;line-height:1.6">${c.medical}</div>`:''}${c.notes?`<div class="section-title">Advisor notes</div><div class="card" style="font-size:12px;color:#666;line-height:1.6">${c.notes}</div>`:''}`;}
+const giLabels={home:'Home contents',motor:'Motor',travel:'Travel',maid:'Maid insurance',pet:'Pet insurance',foreign_worker:'Foreign worker',bike:'Motorcycle'};
+function giBadge(v){if(v==='us')return'<span class="badge b-yes">With us</span>';if(v==='not')return'<span class="badge b-no">Not with us</span>';return'<span class="badge b-gray">N/A</span>';}
+function renderGI(c){const gaps=Object.entries(c.gi||{}).filter(([k,v])=>v==='not').map(([k])=>giLabels[k]||k);return(gaps.length?`<div class="alert-item alert-amber" style="margin-bottom:12px"><i class="ti ti-alert-triangle" style="font-size:15px;margin-top:1px"></i><div><strong>Opportunity:</strong> ${gaps.join(', ')} not with us — follow up to consolidate.</div></div>`:`<div class="alert-item alert-green" style="margin-bottom:12px"><i class="ti ti-check" style="font-size:15px"></i><span>All applicable GI policies are with us.</span></div>`)+`<div class="card">${Object.entries(c.gi||{}).map(([k,v])=>`<div class="gi-row"><span>${giLabels[k]||k}</span>${giBadge(v)}</div>`).join('')}</div>`;}
+function renderEstate(c){const e=c.estate||{};const eb=v=>v?'<span class="badge b-yes">Done</span>':'<span class="badge b-no">Missing</span>';return`<div class="card"><div class="gi-row"><span>Will</span>${eb(e.will)}</div><div class="gi-row"><span>CPF nomination</span>${eb(e.nomination)}</div><div class="gi-row"><span>Lasting Power of Attorney (LPA)</span>${eb(e.lpa)}</div><div class="gi-row"><span>Advance Medical Directive (AMD)</span>${eb(e.amd)}</div></div>${e.executor?`<div class="section-title">Details</div><div class="card"><div class="field-row"><span class="field-key">Executor / trustee</span><span class="field-val">${e.executor}</span></div>${e.notarised?`<div class="field-row"><span class="field-key">Notarised</span><span class="field-val">${e.notarised}</span></div>`:''}</div>`:''}`;}
+function renderLifestyle(c){const l=c.lifestyle||{};return`<div class="card"><div class="field-row"><span class="field-key">House type</span><span class="field-val">${l.house||'—'}</span></div><div class="field-row"><span class="field-key">Car</span><span class="field-val">${l.car_model||'None'}</span></div><div class="field-row"><span class="field-key">Maid</span><span class="field-val">${l.maid?'Yes':'No'}</span></div><div class="field-row"><span class="field-key">Pets</span><span class="field-val">${l.pets||'None'}</span></div><div class="field-row"><span class="field-key">Hobbies</span><span class="field-val">${l.hobbies||'—'}</span></div></div>`;}
+function renderAlerts(c){const a=c.alerts||{};const cv=c.coverage||{};let html='';if(a.ci_gap){const gap=(cv.ci_rec||0)-(cv.ci_current||0);html+=`<div class="alert-item alert-red"><i class="ti ti-alert-circle" style="font-size:15px;margin-top:1px"></i><div><strong>CI coverage gap</strong><br>Current ${fmt(cv.ci_current)} vs recommended ${fmt(cv.ci_rec)}. Gap of ${fmt(gap)}.</div></div>`;}if(a.lpa_missing)html+=`<div class="alert-item alert-amber"><i class="ti ti-alert-triangle" style="font-size:15px;margin-top:1px"></i><div><strong>LPA not done</strong><br>Client has not set up a Lasting Power of Attorney.</div></div>`;if(a.srs)html+=`<div class="alert-item alert-amber"><i class="ti ti-piggy-bank" style="font-size:15px;margin-top:1px"></i><div><strong>SRS not started</strong><br>Age ${c.age} — recommend starting SRS contributions for tax relief.</div></div>`;if(a.retirement)html+=`<div class="alert-item alert-blue"><i class="ti ti-clock" style="font-size:15px;margin-top:1px"></i><div><strong>Retirement planning</strong><br>Client approaching retirement age. Review CPF, annuity, and drawdown plan.</div></div>`;if(!html)html='<div style="font-size:13px;color:#aaa;padding:24px 0;text-align:center">No active alerts for this client.</div>';return html;}
+function openAddModal(prefill){editingId=prefill?String(prefill.id):null;document.getElementById('modal-title').textContent=editingId?'Edit client':'Add client';document.getElementById('modal-body').innerHTML=buildForm(prefill||{});document.getElementById('modal-overlay').classList.add('open');}
+function editCurrent(){const c=clients.find(x=>String(x.id)===String(currentId));if(c)openAddModal(c);}
+function closeModal(){document.getElementById('modal-overlay').classList.remove('open');}
+function buildForm(c){const gi=c.gi||{};const es=c.estate||{};const lf=c.lifestyle||{};const al=c.alerts||{};const cv=c.coverage||{};function giSel(k){return`<select id="f_gi_${k}"><option value="us"${gi[k]==='us'?' selected':''}>With us</option><option value="not"${gi[k]==='not'?' selected':''}>Not with us</option><option value="na"${(!gi[k]||gi[k]==='na')?' selected':''}>N/A</option></select>`;}const houses=['HDB 1-2 room','HDB 3-room','HDB 4-room','HDB 5-room','Condo','Landed'];return`<div class="form-section">Personal details</div><div class="form-grid"><div class="form-group"><label>Full name *</label><input id="f_name" value="${c.name||''}" placeholder="e.g. David Tan"/></div><div class="form-group"><label>Age</label><input id="f_age" type="number" value="${c.age||''}" placeholder="42"/></div><div class="form-group"><label>NRIC (masked)</label><input id="f_nric" value="${c.nric||''}" placeholder="S80XX123X"/></div><div class="form-group"><label>Date of birth</label><input id="f_dob" value="${c.dob||''}" placeholder="15 Jan 1982"/></div><div class="form-group"><label>Phone</label><input id="f_phone" value="${c.phone||''}" placeholder="9123 4567"/></div><div class="form-group"><label>Email</label><input id="f_email" value="${c.email||''}" placeholder="name@email.com"/></div><div class="form-group"><label>Occupation</label><input id="f_occ" value="${c.occupation||''}" placeholder="e.g. Manager"/></div><div class="form-group"><label>Annual income ($)</label><input id="f_income" type="number" value="${c.annual_income||''}" placeholder="120000"/></div></div><div class="form-section">Coverage</div><div class="form-grid"><div class="form-group"><label>CI sum assured ($)</label><input id="f_ci_c" type="number" value="${cv.ci_current||''}"/></div><div class="form-group"><label>CI recommended ($)</label><input id="f_ci_r" type="number" value="${cv.ci_rec||''}"/></div><div class="form-group"><label>Life/TPD sum assured ($)</label><input id="f_life_c" type="number" value="${cv.life_current||''}"/></div><div class="form-group"><label>Life/TPD recommended ($)</label><input id="f_life_r" type="number" value="${cv.life_rec||''}"/></div></div><div class="form-section">GI coverage</div><div class="form-grid"><div class="form-group"><label>Home contents</label>${giSel('home')}</div><div class="form-group"><label>Motor</label>${giSel('motor')}</div><div class="form-group"><label>Travel</label>${giSel('travel')}</div><div class="form-group"><label>Maid insurance</label>${giSel('maid')}</div><div class="form-group"><label>Pet insurance</label>${giSel('pet')}</div><div class="form-group"><label>Foreign worker</label>${giSel('foreign_worker')}</div><div class="form-group"><label>Motorcycle</label>${giSel('bike')}</div></div><div class="form-section">Estate planning</div><div class="checkbox-grid"><label class="chk-row"><input type="checkbox" id="f_will"${es.will?' checked':''}/> Will</label><label class="chk-row"><input type="checkbox" id="f_nom"${es.nomination?' checked':''}/> CPF nomination</label><label class="chk-row"><input type="checkbox" id="f_lpa"${es.lpa?' checked':''}/> LPA</label><label class="chk-row"><input type="checkbox" id="f_amd"${es.amd?' checked':''}/> AMD</label></div><div class="form-grid"><div class="form-group"><label>Executor / trustee</label><input id="f_exec" value="${es.executor||''}" placeholder="e.g. Spouse (name)"/></div><div class="form-group"><label>Year notarised</label><input id="f_not" value="${es.notarised||''}" placeholder="e.g. 2023"/></div></div><div class="form-section">Lifestyle</div><div class="form-grid"><div class="form-group"><label>House type</label><select id="f_house">${houses.map(h=>`<option${lf.house===h?' selected':''}>${h}</option>`).join('')}</select></div><div class="form-group"><label>Car make / model</label><input id="f_car" value="${lf.car_model||''}" placeholder="e.g. Toyota Camry"/></div><div class="form-group"><label>Pets</label><input id="f_pets" value="${lf.pets||''}" placeholder="e.g. 1 dog"/></div><div class="form-group"><label>Hobbies</label><input id="f_hobbies" value="${lf.hobbies||''}" placeholder="e.g. Golf, travel"/></div></div><div style="margin:8px 0 4px"><label class="chk-row"><input type="checkbox" id="f_maid"${lf.maid?' checked':''}/> Has maid</label></div><div class="form-section">Alerts</div><div class="checkbox-grid"><label class="chk-row"><input type="checkbox" id="f_al_ci"${al.ci_gap?' checked':''}/> CI gap</label><label class="chk-row"><input type="checkbox" id="f_al_srs"${al.srs?' checked':''}/> SRS not started</label><label class="chk-row"><input type="checkbox" id="f_al_ret"${al.retirement?' checked':''}/> Retirement planning</label><label class="chk-row"><input type="checkbox" id="f_al_lpa"${al.lpa_missing?' checked':''}/> LPA missing</label></div><div class="form-section">Medical &amp; notes</div><div class="form-group" style="margin-bottom:10px"><label>Medical conditions / exclusions</label><textarea id="f_medical">${c.medical||''}</textarea></div><div class="form-group"><label>Advisor notes</label><textarea id="f_notes">${c.notes||''}</textarea></div><div class="form-actions"><button onclick="closeModal()">Cancel</button><button class="btn-save" id="save-btn" onclick="saveClient()">Save to Sheet</button></div>`;}
+function gv(id){const e=document.getElementById(id);return e?e.value:'';}
+function gc(id){const e=document.getElementById(id);return e?e.checked:false;}
+async function saveClient(){if(saving)return;const name=gv('f_name').trim();if(!name){alert('Please enter a client name.');return;}saving=true;const btn=document.getElementById('save-btn');if(btn){btn.textContent='Saving...';btn.disabled=true;}const client={id:editingId||null,name,age:parseInt(gv('f_age'))||0,nric:gv('f_nric'),dob:gv('f_dob'),phone:gv('f_phone'),email:gv('f_email'),occupation:gv('f_occ'),annual_income:parseInt(gv('f_income'))||0,coverage:{ci_current:parseInt(gv('f_ci_c'))||0,ci_rec:parseInt(gv('f_ci_r'))||0,life_current:parseInt(gv('f_life_c'))||0,life_rec:parseInt(gv('f_life_r'))||0},gi:{home:gv('f_gi_home'),motor:gv('f_gi_motor'),travel:gv('f_gi_travel'),maid:gv('f_gi_maid'),pet:gv('f_gi_pet'),foreign_worker:gv('f_gi_foreign_worker'),bike:gv('f_gi_bike')},estate:{will:gc('f_will'),nomination:gc('f_nom'),lpa:gc('f_lpa'),amd:gc('f_amd'),executor:gv('f_exec'),notarised:gv('f_not')},lifestyle:{house:gv('f_house'),car:!!gv('f_car'),car_model:gv('f_car'),maid:gc('f_maid'),pets:gv('f_pets'),hobbies:gv('f_hobbies')},alerts:{ci_gap:gc('f_al_ci'),srs:gc('f_al_srs'),retirement:gc('f_al_ret'),lpa_missing:gc('f_al_lpa')},medical:gv('f_medical'),notes:gv('f_notes'),color:editingId?(clients.find(x=>String(x.id)===String(editingId))||{}).color||0:clients.length%COLORS.length};try{const res=await apiCall({action:'save',client});if(res.error)throw new Error(res.error);showToast(editingId?'Client updated':'Client added');closeModal();await loadClients();currentId=String(res.id||client.id);selectClient(currentId);}catch(e){showToast('Error saving — check your Sheet connection');if(btn){btn.textContent='Save to Sheet';btn.disabled=false;}}saving=false;}
+async function deleteCurrent(){const c=clients.find(x=>String(x.id)===String(currentId));if(!c)return;if(!confirm('Delete '+c.name+'? This will remove them from the Google Sheet permanently.'))return;try{const res=await apiCall({action:'delete',id:currentId});if(res.error)throw new Error(res.error);showToast('Client deleted');currentId=null;document.getElementById('client-view').style.display='none';document.getElementById('no-client-msg').style.display='flex';await loadClients();}catch(e){showToast('Error deleting — check connection');}}
+loadClients();
+setInterval(()=>loadClients(),60000);
+</script>
+</body>
+</html>
